@@ -1,0 +1,15 @@
+product_id,product_name,sales,date
+1,Product A,150,2023-01-15
+2,Product B,200,2023-01-16
+1,Product A,170,2023-02-15
+2,Product B,210,2023-02-16
+3,Product C,300,2023-03-10
+1,Product A,180,2023-03-15
+3,Product C,320,2023-04-10
+2,Product B,220,2023-04-16
+3,Product C,340,2023-05-10
+4,Product D,400,2023-05-15
+4,Product D,420,2023-06-15
+5,Product E,500,2023-06-20
+5,Product E,520,2023-07-20
+1,Product A,160,2023-07-15

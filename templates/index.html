@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="form-container">
+        <h1>Select Role</h1>
+        <form method="POST" action="/role_redirect">
+            <select name="role" required>
+                <option value="">Select Role</option>
+                <option value="admin">Admin</option>
+                <option value="manager">Manager</option>
+            </select>
+            <button type="submit">Continue</button>
+        </form>
+        <p class="flash">{{ get_flashed_messages() }}</p>
+    </div>
+</body>
+</html>

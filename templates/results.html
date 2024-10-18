@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='results.css') }}">
+</head>
+<body>
+    <div class="results-container">
+        <h1>Sales Prediction Results</h1>
+        
+
+        <h2>Total Sales by Product Chart</h2>
+        <img src="{{ url_for('static', filename='total_sales_by_product_name.png') }}" alt="Sales Chart">
+
+        <form action="{{ url_for('logout') }}" method="post">
+            <button type="submit">Logout</button>
+        </form>
+        
+    </div>
+</body>
+</html>
