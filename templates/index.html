@@ -3,21 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Index</title>
+    <title>Home</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="form-container">
-        <h1>Select Role</h1>
-        <form method="POST" action="/role_redirect">
-            <select name="role" required>
-                <option value="">Select Role</option>
-                <option value="admin">Admin</option>
-                <option value="manager">Manager</option>
-            </select>
-            <button type="submit">Continue</button>
-        </form>
-        <p class="flash">{{ get_flashed_messages() }}</p>
-    </div>
+    <h1>Welcome to the Inventory Optimization System</h1>
+    <form action="{{ url_for('role_redirect') }}" method="POST">
+        <label for="role">Select Role:</label>
+        <select name="role" id="role" required>
+            <option value="" disabled selected>Select your role</option>
+            <option value="admin">Admin</option>
+            <option value="manager">Manager</option>
+        </select>
+        <button type="submit">Proceed</button>
+    </form>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
 </body>
 </html>

@@ -48,3 +48,8 @@ button:hover {
     color: red;
     text-align: center;
 }
+
+a{
+    text-decoration: none;
+    color: white;
+}

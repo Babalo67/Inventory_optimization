@@ -4,20 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Results</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='results.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="results-container">
-        <h1>Sales Prediction Results</h1>
-        
 
-        <h2>Total Sales by Product Chart</h2>
-        <img src="{{ url_for('static', filename='total_sales_by_product_name.png') }}" alt="Sales Chart">
+    <h1>Welcome, {{ username }}!</h1><br>
+    <h1>Results</h1>
 
-        <form action="{{ url_for('logout') }}" method="post">
-            <button type="submit">Logout</button>
-        </form>
-        
-    </div>
+    <h2>All Products by Sales</h2>
+   <iframe src="{{ url_for('static', filename='total_sales_by_product_name.html') }}" width="100%" height="600" frameborder="0"></iframe>
+
+
+
+    <h2>top selling items</h2>
+    <iframe src="{{ url_for('static', filename='most_selling_products.html') }}" width="100%" height="600px"></iframe>
+    
+    <h2>Least Selling items</h2>
+    <iframe src="{{ url_for('static', filename='least_selling_products.html') }}" width="100%" height="600px"></iframe>
+
+    <h3>Stock Recommendations</h3>
+<button type="button" style="width: 15%; background-color: aquamarine;"> <a href="{{ url_for('download_product_sales') }}">Download Product Sales Summary</a>
+</button><br><br>
+
+<button onclick="window.location.href='{{ url_for('upload_page') }}'">Back to Uploading sales data</button>
+
+    <form action="{{ url_for('logout') }}" method="POST">
+        <button type="submit">Logout</button>
+    </form>
 </body>
 </html>

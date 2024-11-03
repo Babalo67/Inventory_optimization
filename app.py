@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
 import os
 import pandas as pd
-import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 import sqlite3
+import plotly.express as px
+import plotly.graph_objects as go
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Replace with a secure random key
@@ -61,7 +62,7 @@ def register_page():
             except sqlite3.IntegrityError:
                 flash('Username already exists.')
             conn.close()
-            return redirect(url_for('login_page'))
+            return redirect(url_for('index'))
     return render_template('register.html')
 
 # Route for the login page
@@ -119,61 +120,96 @@ def process_csv(file_path):
     predictions = model.predict(X_test)
 
     # Save predictions to CSV
-    predictions_df = pd.DataFrame({
-        'Product ID': X_test.idxmax(axis=1),
-        'Predicted Sales': predictions
-    })
-    csv_output_path = os.path.join('static', 'predicted_sales.csv')
-    predictions_df.to_csv(csv_output_path, index=False)
+   # predictions_df = pd.DataFrame({
+  #      'Product ID': X_test.idxmax(axis=1),
+  #      'Predicted Sales': predictions
+   # })
+   # csv_output_path = os.path.join('static', 'predicted_sales.csv')
+   # predictions_df.to_csv(csv_output_path, index=False)
 
     # Aggregate sales data by product
     product_sales = data.groupby(['product_id', 'product_name'])['sales'].sum().reset_index()
+    
+    # Calculate median sales
     median_sales = product_sales['sales'].median()
     product_sales['category'] = product_sales['sales'].apply(
         lambda x: 'Fast-Moving' if x >= median_sales else 'Slow-Moving'
     )
 
-    # Plot the total sales by product
-    plt.figure(figsize=(10, 6))
+
+    # Stock Level Adjustments: Recommend restocking amounts
+    product_sales['restock_recommendation'] = product_sales['category'].apply(
+        lambda x: 'Increase Stock by 20%' if x == 'Fast-Moving' else 'Reduce Stock'
+    )
+
+    # Save product sales for visualization
+    product_sales.to_excel(os.path.join('static', 'product_sales_summary.xlsx'), index=False)
+
+
+    # Bar chart for sales by product
     colors = ['green' if category == 'Fast-Moving' else 'red' for category in product_sales['category']]
-    plt.bar(product_sales['product_name'], product_sales['sales'], color=colors)
+    bar_fig = px.bar(product_sales, x='product_name', y='sales', color='category',
+                     color_discrete_map={'Fast-Moving': 'green', 'Slow-Moving': 'red'},
+                     title="Total Sales by Product Name")
 
-    # Create legend handles manually
-    from matplotlib.patches import Patch
-    fast_moving_patch = Patch(color='green', label='Fast-Moving products')
-    slow_moving_patch = Patch(color='red', label='Slow-Moving products')
+    bar_fig.update_layout(xaxis_title='Product Name', yaxis_title='Total Sales')
+    bar_fig.write_html(os.path.join('static', 'total_sales_by_product_name.html'))
+
+    # Most and Least Selling Products
+    most_selling = product_sales.nlargest(5, 'sales')
+    least_selling = product_sales.nsmallest(5, 'sales')
+
+    # Bar chart for most and least selling products
+    bar_fig = px.bar(most_selling, x='product_name', y='sales', color='sales',
+                     title="Most Selling Products", color_continuous_scale=px.colors.sequential.Greens)
+
+    bar_fig.write_html(os.path.join('static', 'most_selling_products.html'))
+
+    # Bar chart for least selling products
+    bar_fig_least = px.bar(least_selling, x='product_name', y='sales', color='sales',
+                            title="Least Selling Products", color_continuous_scale=px.colors.sequential.Reds)
+
+    bar_fig_least.write_html(os.path.join('static', 'least_selling_products.html'))
+
+
+
+@app.route('/download-product-sales')
+def download_product_sales():
+    # Specify the file path
+    file_path = os.path.join('static', 'product_sales_summary.xlsx')
     
-    # Add legend
-    plt.legend(handles=[fast_moving_patch, slow_moving_patch], title="Category")
-
-    plt.xlabel('Product Name')
-    plt.ylabel('Total Sales')
-    plt.title('Total Sales by Product Name')
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-
-    # Save the chart as PNG
-    png_output_path = os.path.join('static', 'total_sales_by_product_name.png')
-    plt.savefig(png_output_path)
-    plt.close()
+    # Return the file as an attachment
+    return send_from_directory(directory='static', path='product_sales_summary.xlsx', as_attachment=True)
 
 # Route to show the results
 @app.route('/results')
 def results_page():
-    return render_template('results.html')  # Render the results page
+    return render_template('results.html')
 
 # Route to delete the uploaded file
 @app.route('/delete', methods=['POST'])
 def delete_file():
-    file_path = os.path.join('static', 'uploaded_file.csv')  # Adjust the path as necessary
+    file_paths = [
+        os.path.join('static', 'sales_data.csv'),
+        os.path.join('static', 'total_sales_by_product_name.html'),
+        os.path.join('static', 'most_selling_products.html'),
+        os.path.join('static', 'least_selling_products.html'),
+        os.path.join('static', 'product_sales_summary.html')
+    ]
+
     try:
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            flash('File deleted successfully!')
+        deleted = False
+        for file_path in file_paths:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                deleted = True
+        if deleted:
+            flash('File(s) deleted successfully!')
         else:
             flash('No file to delete.')
     except Exception as e:
-        flash(f'Error deleting file: {str(e)}')
+        flash(f'Error deleting file(s): {str(e)}')
+    
     return redirect(url_for('upload_page'))
 
 @app.route('/logout', methods=['GET', 'POST'])
@@ -182,6 +218,5 @@ def logout():
     flash('You have been logged out.')
     return redirect(url_for('index'))
 
-
-if __name__ == '__main__': 
+if __name__ == '__main__':
     app.run(debug=True)
